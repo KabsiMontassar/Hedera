@@ -51,16 +51,31 @@ router.post('/mint', BadgeController.mintBadge);
  *     "metadata": {...}
  *   }
  * }
+ * 
+ * Error responses:
+ * (400) Duplicate transaction:
+ * {
+ *   "success": false,
+ *   "message": "Duplicate transaction detected",
+ *   "error": "Transaction already exists"
+ * }
+ * 
+ * (400) Token ID missing:
+ * {
+ *   "success": false,
+ *   "message": "Invalid token data",
+ *   "error": "Token ID is required"
+ * }
  */
 
-// Get badge details by token ID
-router.get('/:tokenId', BadgeController.getBadgeDetails);
+// Get badge details by transaction ID
+router.get('/:transactionId', BadgeController.getBadgeDetails);
 /**
  * Get badge details API
- * GET http://localhost:3000/api/badges/:tokenId
+ * GET http://localhost:3000/api/badges/:transactionId
  * 
  * Parameters:
- * - tokenId: Hedera NFT token ID
+ * - transactionId: Hedera NFT transaction ID
  * 
  * Success response (200):
  * {
@@ -78,13 +93,13 @@ router.get('/:tokenId', BadgeController.getBadgeDetails);
  */
 
 // Verify badge authenticity
-router.get('/verify/:tokenId', BadgeController.verifyBadge);
+router.get('/verify/:transactionId', BadgeController.verifyBadge);
 /**
  * Verify badge API
- * GET http://localhost:3000/api/badges/verify/:tokenId
+ * GET http://localhost:3000/api/badges/verify/:transactionId
  * 
  * Parameters:
- * - tokenId: Hedera NFT token ID
+ * - transactionId: Hedera NFT transaction ID
  * 
  * Success response (200):
  * {

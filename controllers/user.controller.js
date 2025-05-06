@@ -55,7 +55,10 @@ exports.getProfile = async (req, res) => {
   try {
     const email = req.params.email;
     const user = await User.findOne({ email })
-      .populate('badges')
+      .populate({
+        path: 'badges',
+        model: 'Badge'
+      })
       .populate('completedCourses');
     
     if (!user) {
@@ -69,8 +72,8 @@ exports.getProfile = async (req, res) => {
         username: user.username,
         email: user.email,
         hederaAccountId: user.hederaAccountId,
-        completedCourses: user.completedCourses,
-        badges: user.badges
+        completedCourses: user.completedCourses || [],
+        badges: user.badges || []
       } 
     });
   } catch (error) {
