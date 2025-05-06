@@ -152,7 +152,15 @@ class HederaService {
         .setTokenId(tokenId)
         .execute(this.client);
       
-      return tokenInfo;
+      // Enhanced verification
+      const tokenValid = {
+        ...tokenInfo,
+        isValid: tokenInfo && 
+                tokenInfo.adminKey && 
+                tokenInfo.adminKey.toString() === this.treasuryKey.publicKey.toString()
+      };
+      
+      return tokenValid;
     } catch (error) {
       console.error('Error getting token info:', error);
       throw error;

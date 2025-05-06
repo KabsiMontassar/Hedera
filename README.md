@@ -9,11 +9,6 @@ A decentralized platform for issuing verifiable NFT badges on the Hedera network
   - Verifiable on-chain badge credentials
   - IPFS metadata storage
   
-- 🔐 Smart Contract Integration
-  - Badge verification system
-  - Course completion tracking
-  - Authorized issuer management
-  
 - 👤 User Management
   - Hedera account creation
   - Profile management
@@ -27,7 +22,6 @@ A decentralized platform for issuing verifiable NFT badges on the Hedera network
 ## Technology Stack
 
 - **Blockchain**: Hedera Network
-- **Smart Contracts**: Solidity
 - **Backend**: Node.js, Express
 - **Database**: MongoDB
 - **Storage**: IPFS (for metadata)
@@ -61,27 +55,12 @@ A decentralized platform for issuing verifiable NFT badges on the Hedera network
    HEDERA_ACCOUNT_ID=your-account-id
    HEDERA_PRIVATE_KEY=your-private-key
    
-   # Smart Contract
-   VERIFICATION_CONTRACT_ID=your-contract-id
-   BADGE_TOKEN_ID=your-token-id
-   
    # Database
    MONGODB_URI=your-mongodb-uri
    
    # Server
    PORT=3000
    ```
-
-## Smart Contract Deployment
-
-1. Deploy the BadgeVerification contract:
-   ```bash
-   # Using Hedera CLI or SDK
-   hedera contract deploy BadgeVerification.sol
-   ```
-
-2. Update the `VERIFICATION_CONTRACT_ID` in your `.env`
-
 
 ## API Endpoints
 
@@ -108,18 +87,6 @@ GET    /api/badges/:tokenId
 GET    /api/badges/verify/:tokenId
 ```
 
-## Smart Contract Functions
-
-### Badge Verification
-- `issueBadge(string badgeId, string userId, string courseId, string metadataHash)`
-- `verifyBadge(string badgeId)`
-- `completeCourse(string userId, string courseId)`
-- `verifyCourseCompletion(string userId, string courseId)`
-
-### Access Control
-- `authorizeIssuer(address issuer)`
-- `revokeIssuer(address issuer)`
-
 ## Development
 
 ```bash
@@ -135,7 +102,6 @@ npm start
 - All badge issuance requires authorized issuers
 - Course completion verification is on-chain
 - Badge metadata is immutable once issued
-- Admin controls for issuer management
 
 ## Error Handling
 

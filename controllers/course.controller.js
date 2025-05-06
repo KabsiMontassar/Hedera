@@ -90,20 +90,6 @@ exports.completeCourse = async (req, res) => {
       });
     }
     
-    // Use smart contract to verify course completion
-    const verificationResult = await SmartContractService.verifyCourseCompletion(
-      userId,
-      courseId
-    );
-    
-    if (!verificationResult.success) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Course completion verification failed', 
-        details: verificationResult.message 
-      });
-    }
-    
     // Update user's completed courses
     await User.findByIdAndUpdate(userId, {
       $push: { completedCourses: courseId }
@@ -111,8 +97,7 @@ exports.completeCourse = async (req, res) => {
     
     return res.status(200).json({ 
       success: true, 
-      message: 'Course marked as completed',
-      verificationResult
+      message: 'Course marked as completed'
     });
   } catch (error) {
     console.error('Error completing course:', error);

@@ -2,7 +2,6 @@ const Badge = require('../models/badge.model');
 const User = require('../models/user.model');
 const Course = require('../models/course.model');
 const HederaService = require('../services/hedera.service');
-const SmartContractService = require('../services/smartContract.service');
 
 exports.getUserBadges = async (req, res) => {
   try {
@@ -115,25 +114,31 @@ exports.verifyBadge = async (req, res) => {
   try {
     const tokenId = req.params.tokenId;
     
-    // First verify on blockchain
-    const verificationResult = await SmartContractService.verifyBadge(tokenId);
-    
-    if (!verificationResult) {
+    // Get badge details from database
+    const badge = await Badge.findOne({ tokenId })
+      .populate('userId', 'username email')
+      .populate('courseId', 'title description');
+
+    if (!badge) {
       return res.status(404).json({ 
         success: false, 
         message: 'Badge not found or invalid' 
       });
     }
 
-    // Get additional badge details from database
-    const badge = await Badge.findOne({ tokenId })
-      .populate('userId', 'username email')
-      .populate('courseId', 'title description');
+    // Verify the token exists on Hedera and get its full details
+    const tokenInfo = await HederaService.getTokenInfo(tokenId);
+    
+    // Additional verification steps
+    const isValid = tokenInfo && 
+                   tokenInfo.totalSupply > 0 && 
+                   tokenInfo.treasuryAccountId === process.env.HEDERA_ACCOUNT_ID;
 
     return res.status(200).json({ 
-      success: true, 
-      verification: verificationResult,
-      badge: badge 
+      success: true,
+      isValid,
+      badge: badge,
+      tokenInfo: tokenInfo
     });
   } catch (error) {
     console.error('Error verifying badge:', error);
