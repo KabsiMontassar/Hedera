@@ -43,8 +43,8 @@ A decentralized platform for issuing verifiable NFT badges on the Hedera network
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/hedera-nft-badges.git
-   cd hedera-nft-badges
+   git clone https://github.com/KabsiMontassar/Hedera
+   cd Hedera
    ```
 
 2. Install dependencies:
@@ -81,6 +81,7 @@ A decentralized platform for issuing verifiable NFT badges on the Hedera network
    ```
 
 2. Update the `VERIFICATION_CONTRACT_ID` in your `.env`
+
 
 ## API Endpoints
 
