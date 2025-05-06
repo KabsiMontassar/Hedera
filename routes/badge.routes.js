@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const BadgeController = require('../controllers/badge.controller');
 
-// Get all badges for a user
+// Get all badges for a user by email
 router.get('/user/:userEmail', BadgeController.getUserBadges);
 /**
  * Get user badges API

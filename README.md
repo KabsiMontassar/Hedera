@@ -66,9 +66,9 @@ A decentralized platform for issuing verifiable NFT badges on the Hedera network
 
 ### User Management
 ```
-POST /api/users/register
-GET  /api/users/:id
-PUT  /api/users/:id
+POST /api/users/register         # Register new user
+GET  /api/users/profile/:email  # Get user profile by email
+PUT  /api/users/profile/:email  # Update user profile by email
 ```
 
 ### Course Management
@@ -81,10 +81,10 @@ POST   /api/courses/:id/complete
 
 ### Badge Management
 ```
-GET    /api/badges/user/:userId
-POST   /api/badges/mint
-GET    /api/badges/:tokenId
-GET    /api/badges/verify/:tokenId
+GET    /api/badges/user/:userEmail   # Get user badges by email
+POST   /api/badges/mint             # Mint badge (using email in body)
+GET    /api/badges/:tokenId         # Get badge details
+GET    /api/badges/verify/:tokenId  # Verify badge authenticity
 ```
 
 ## Development

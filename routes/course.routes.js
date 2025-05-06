@@ -86,7 +86,7 @@ router.post('/:id/complete', CourseController.completeCourse);
  * 
  * Request body:
  * {
- *   "userId": "user_mongodb_id"
+ *   "userEmail": "user@example.com"
  * }
  * 
  * Success response (200):
