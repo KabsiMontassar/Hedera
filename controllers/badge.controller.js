@@ -5,23 +5,35 @@ const HederaService = require('../services/hedera.service');
 
 exports.getUserBadges = async (req, res) => {
   try {
-    const userId = req.params.userId;
-    const badges = await Badge.find({ userId }).populate('courseId');
+    const userEmail = req.params.userEmail;
+    const user = await User.findOne({ email: userEmail });
     
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'User not found' 
+      });
+    }
+    
+    const badges = await Badge.find({ userId: user._id }).populate('courseId');
     return res.status(200).json({ success: true, badges });
   } catch (error) {
     console.error('Error fetching user badges:', error);
-    return res.status(500).json({ success: false, message: 'Failed to fetch badges', error: error.message });
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Failed to fetch badges', 
+      error: error.message 
+    });
   }
 };
 
 exports.mintBadge = async (req, res) => {
   try {
-    const { userId, courseId } = req.body;
+    const { userEmail, courseId } = req.body;
     
     // Verify user and course existence
     const [user, course] = await Promise.all([
-      User.findById(userId),
+      User.findOne({ email: userEmail }),
       Course.findById(courseId)
     ]);
     
@@ -54,7 +66,7 @@ exports.mintBadge = async (req, res) => {
       // Save badge in database
       const newBadge = new Badge({
         tokenId: mintResult.tokenId,
-        userId: userId,
+        userId: user._id,
         courseId: courseId,
         metadata: metadata,
         transactionId: mintResult.transactionId
@@ -63,7 +75,7 @@ exports.mintBadge = async (req, res) => {
       await newBadge.save();
       
       // Update user's badges
-      await User.findByIdAndUpdate(userId, {
+      await User.findByIdAndUpdate(user._id, {
         $push: { badges: newBadge._id }
       });
       

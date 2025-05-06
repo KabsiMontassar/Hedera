@@ -67,11 +67,11 @@ exports.createCourse = async (req, res) => {
 exports.completeCourse = async (req, res) => {
   try {
     const courseId = req.params.id;
-    const { userId } = req.body;
+    const { userEmail } = req.body;
     
     // Verify user and course existence
     const [user, course] = await Promise.all([
-      User.findById(userId),
+      User.findOne({ email: userEmail }),
       Course.findById(courseId)
     ]);
     
@@ -91,7 +91,7 @@ exports.completeCourse = async (req, res) => {
     }
     
     // Update user's completed courses
-    await User.findByIdAndUpdate(userId, {
+    await User.findByIdAndUpdate(user._id, {
       $push: { completedCourses: courseId }
     });
     

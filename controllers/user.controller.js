@@ -53,8 +53,8 @@ exports.register = async (req, res) => {
 
 exports.getProfile = async (req, res) => {
   try {
-    const userId = req.params.id;
-    const user = await User.findById(userId)
+    const email = req.params.email;
+    const user = await User.findOne({ email })
       .populate('badges')
       .populate('completedCourses');
     
@@ -85,11 +85,11 @@ exports.getProfile = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
   try {
-    const userId = req.params.id;
+    const currentEmail = req.params.email;
     const { username, email } = req.body;
     
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
+    const updatedUser = await User.findOneAndUpdate(
+      { email: currentEmail },
       { username, email },
       { new: true }
     );
