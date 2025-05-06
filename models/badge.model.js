@@ -1,35 +1,33 @@
 const mongoose = require('mongoose');
 
 const badgeSchema = new mongoose.Schema({
-  tokenId: {
+  badgeId: {
     type: String,
     required: true,
     unique: true
   },
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+  name: {
+    type: String,
     required: true
   },
-  courseId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Course',
+  description: String,
+  image: String,
+  criteria: {
+    type: String,
     required: true
+  },
+  category: {
+    type: String,
+    enum: ['Achievement', 'Skill', 'Certification'],
+    default: 'Achievement'
   },
   metadata: {
-    name: String,
-    description: String,
-    image: String,
+    symbol: String,
     properties: {
-      completionDate: Date,
       difficulty: String,
-      issuer: String
+      issuer: String,
+      skills: [String]
     }
-  },
-  transactionId: String,
-  mintedAt: {
-    type: Date,
-    default: Date.now
   }
 }, { timestamps: true });
 

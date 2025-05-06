@@ -1,69 +1,164 @@
-# Hedera NFT Badges Platform
+# Hedera NFT Badge Platform
 
-This application allows users to earn NFT badges on the Hedera network when they complete courses or tasks.
+A decentralized platform for issuing verifiable NFT badges on the Hedera network for course completion and achievements.
 
 ## Features
 
-- User registration and profile management
-- Course creation and completion tracking
-- Automatic NFT badge minting on the Hedera network
-- Smart contract integration for verification
-- View earned badges and their details
+- 🏆 NFT Badge Issuance & Management
+  - Automatic NFT minting upon course completion
+  - Verifiable on-chain badge credentials
+  - IPFS metadata storage
+  
+- 🔐 Smart Contract Integration
+  - Badge verification system
+  - Course completion tracking
+  - Authorized issuer management
+  
+- 👤 User Management
+  - Hedera account creation
+  - Profile management
+  - Badge wallet integration
 
-## Setup
+- 📚 Course Management
+  - Course creation and tracking
+  - Completion verification
+  - Badge metadata templates
 
-1. Install dependencies:
+## Technology Stack
+
+- **Blockchain**: Hedera Network
+- **Smart Contracts**: Solidity
+- **Backend**: Node.js, Express
+- **Database**: MongoDB
+- **Storage**: IPFS (for metadata)
+
+## Prerequisites
+
+- Node.js v14+
+- MongoDB 4.4+
+- Hedera testnet account
+- IPFS node 
+
+## Environment Setup
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/hedera-nft-badges.git
+   cd hedera-nft-badges
    ```
+
+2. Install dependencies:
+   ```bash
    npm install
    ```
 
-2. Configure environment variables:
-   - Copy `.env.example` to `.env`
-   - Add your Hedera account ID and private key
-   - Configure MongoDB connection string
-
-3. Start the server:
-   ```
-   npm start
-   ```
+3. Create `.env` file:
+   ```env
+   # Network Configuration
+   HEDERA_NETWORK=testnet
    
-   For development with auto-reload:
+   # Hedera Credentials
+   HEDERA_ACCOUNT_ID=your-account-id
+   HEDERA_PRIVATE_KEY=your-private-key
+   
+   # Smart Contract
+   VERIFICATION_CONTRACT_ID=your-contract-id
+   BADGE_TOKEN_ID=your-token-id
+   
+   # Database
+   MONGODB_URI=your-mongodb-uri
+   
+   # Server
+   PORT=3000
    ```
-   npm run dev
+
+## Smart Contract Deployment
+
+1. Deploy the BadgeVerification contract:
+   ```bash
+   # Using Hedera CLI or SDK
+   hedera contract deploy BadgeVerification.sol
    ```
+
+2. Update the `VERIFICATION_CONTRACT_ID` in your `.env`
 
 ## API Endpoints
 
-### User Endpoints
-- `POST /api/users/register` - Register a new user
-- `GET /api/users/:id` - Get user profile
-- `PUT /api/users/:id` - Update user profile
+### User Management
+```
+POST /api/users/register
+GET  /api/users/:id
+PUT  /api/users/:id
+```
 
-### Course Endpoints
-- `GET /api/courses` - Get all courses
-- `GET /api/courses/:id` - Get a specific course
-- `POST /api/courses` - Create a new course
-- `POST /api/courses/:id/complete` - Mark a course as completed
+### Course Management
+```
+GET    /api/courses
+POST   /api/courses
+GET    /api/courses/:id
+POST   /api/courses/:id/complete
+```
 
-### Badge Endpoints
-- `GET /api/badges/user/:userId` - Get all badges for a user
-- `POST /api/badges/mint` - Mint a new badge
-- `GET /api/badges/:tokenId` - Get badge details
+### Badge Management
+```
+GET    /api/badges/user/:userId
+POST   /api/badges/mint
+GET    /api/badges/:tokenId
+GET    /api/badges/verify/:tokenId
+```
 
-## Technical Details
+## Smart Contract Functions
 
-This application uses:
-- Node.js and Express.js for the backend
-- Hedera SDK for blockchain interactions
-- MongoDB for data storage
-- Hedera Token Service (HTS) for NFT creation and management
-- Hedera Smart Contracts for verification logic
+### Badge Verification
+- `issueBadge(string badgeId, string userId, string courseId, string metadataHash)`
+- `verifyBadge(string badgeId)`
+- `completeCourse(string userId, string courseId)`
+- `verifyCourseCompletion(string userId, string courseId)`
 
-## Smart Contract Integration
+### Access Control
+- `authorizeIssuer(address issuer)`
+- `revokeIssuer(address issuer)`
 
-The application includes a simple Solidity smart contract (`BadgeVerification.sol`) that can be deployed to Hedera's smart contract service. This contract:
-- Tracks course completions
-- Verifies eligibility for badge minting
-- Records badge minting events
+## Development
 
-In a production environment, you would deploy this contract and update the `VERIFICATION_CONTRACT_ID` in your environment variables.
+```bash
+# Start development server
+npm run dev
+
+# Start production server
+npm start
+```
+
+## Security Considerations
+
+- All badge issuance requires authorized issuers
+- Course completion verification is on-chain
+- Badge metadata is immutable once issued
+- Admin controls for issuer management
+
+## Error Handling
+
+The API returns standardized error responses:
+```json
+{
+  "success": false,
+  "message": "Error description",
+  "error": "Detailed error info"
+}
+```
+
+## License
+
+MIT License - see LICENSE file for details
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## Support
+
+For support and questions, please open an issue in the GitHub repository.

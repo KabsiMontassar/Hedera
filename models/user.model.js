@@ -23,8 +23,33 @@ const userSchema = new mongoose.Schema({
   }],
   badges: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Badge'
-  }]
+    ref: 'BadgeClaim'
+  }],
+  nftWallet: {
+    hederaAccountId: String,
+    publicKey: String
+  }
 }, { timestamps: true });
+
+// Add method to check if user has earned a specific badge
+userSchema.methods.hasEarnedBadge = async function(badgeId) {
+  const BadgeClaim = mongoose.model('BadgeClaim');
+  const claim = await BadgeClaim.findOne({
+    userId: this._id,
+    badgeId: badgeId
+  });
+  return !!claim;
+};
+
+// Add method to check if user has claimed a specific badge as NFT
+userSchema.methods.hasClaimedBadge = async function(badgeId) {
+  const BadgeClaim = mongoose.model('BadgeClaim');
+  const claim = await BadgeClaim.findOne({
+    userId: this._id,
+    badgeId: badgeId,
+    status: 'CLAIMED'
+  });
+  return !!claim;
+};
 
 module.exports = mongoose.model('User', userSchema);

@@ -71,6 +71,60 @@ class SmartContractService {
       throw error;
     }
   }
+
+  async issueBadge(badgeId, userId, courseId, metadata) {
+    try {
+      const metadataHash = await this.storeMetadata(metadata);
+      
+      const transaction = new ContractExecuteTransaction()
+        .setContractId(this.contractId)
+        .setGas(100000)
+        .setFunction(
+          "issueBadge",
+          new ContractFunctionParameters()
+            .addString(badgeId)
+            .addString(userId)
+            .addString(courseId)
+            .addString(metadataHash)
+        );
+
+      const response = await transaction.execute(this.client);
+      const receipt = await response.getReceipt(this.client);
+      
+      return {
+        success: true,
+        transactionId: response.transactionId.toString(),
+        receipt
+      };
+    } catch (error) {
+      console.error('Error issuing badge:', error);
+      throw error;
+    }
+  }
+
+  async verifyBadge(badgeId) {
+    try {
+      const query = new ContractCallQuery()
+        .setContractId(this.contractId)
+        .setGas(100000)
+        .setFunction(
+          "verifyBadge",
+          new ContractFunctionParameters().addString(badgeId)
+        );
+
+      const response = await query.execute(this.client);
+      return response;
+    } catch (error) {
+      console.error('Error verifying badge:', error);
+      throw error;
+    }
+  }
+
+  // Helper method to store metadata (implement based on your storage solution)
+  async storeMetadata(metadata) {
+    // TODO: Implement metadata storage (IPFS, etc)
+    return JSON.stringify(metadata); // Temporary implementation
+  }
 }
 
 module.exports = new SmartContractService();

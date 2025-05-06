@@ -11,4 +11,7 @@ router.post('/mint', BadgeController.mintBadge);
 // Get badge details by token ID
 router.get('/:tokenId', BadgeController.getBadgeDetails);
 
+// Verify badge authenticity
+router.get('/verify/:tokenId', BadgeController.verifyBadge);
+
 module.exports = router;

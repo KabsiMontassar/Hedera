@@ -2,6 +2,7 @@ const Badge = require('../models/badge.model');
 const User = require('../models/user.model');
 const Course = require('../models/course.model');
 const HederaService = require('../services/hedera.service');
+const SmartContractService = require('../services/smartContract.service');
 
 exports.getUserBadges = async (req, res) => {
   try {
@@ -105,6 +106,40 @@ exports.getBadgeDetails = async (req, res) => {
     return res.status(500).json({ 
       success: false, 
       message: 'Failed to fetch badge details', 
+      error: error.message 
+    });
+  }
+};
+
+exports.verifyBadge = async (req, res) => {
+  try {
+    const tokenId = req.params.tokenId;
+    
+    // First verify on blockchain
+    const verificationResult = await SmartContractService.verifyBadge(tokenId);
+    
+    if (!verificationResult) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Badge not found or invalid' 
+      });
+    }
+
+    // Get additional badge details from database
+    const badge = await Badge.findOne({ tokenId })
+      .populate('userId', 'username email')
+      .populate('courseId', 'title description');
+
+    return res.status(200).json({ 
+      success: true, 
+      verification: verificationResult,
+      badge: badge 
+    });
+  } catch (error) {
+    console.error('Error verifying badge:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Failed to verify badge', 
       error: error.message 
     });
   }
