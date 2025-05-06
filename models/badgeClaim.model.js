@@ -19,8 +19,7 @@ const badgeClaimSchema = new mongoose.Schema({
   nftDetails: {
     tokenId: String,
     serialNumber: Number,
-    transactionId: String,
-    mintedAt: Date
+    transactionId: String
   },
   earnedAt: {
     type: Date,
@@ -31,11 +30,6 @@ const badgeClaimSchema = new mongoose.Schema({
 
 // Compound index to ensure a user can only claim a badge once
 badgeClaimSchema.index({ userId: 1, badgeId: 1 }, { unique: true });
-
-// Method to check if badge can be claimed
-badgeClaimSchema.methods.canClaim = function() {
-  return this.status === 'EARNED';
-};
 
 // Method to mark badge as claimed
 badgeClaimSchema.methods.markClaimed = function(nftDetails) {
