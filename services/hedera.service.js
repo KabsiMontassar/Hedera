@@ -13,8 +13,7 @@ const {
 } = require('@hashgraph/sdk');
 
 class HederaService {
-  // Update the default token ID to a known valid one (replace with your actual valid token ID)
-  static DEFAULT_TOKEN_ID = '0.0.5958264';  // Example token ID - replace with your valid token ID
+  static DEFAULT_TOKEN_ID = '0.0.5958264';  
 
   // Add token ID validation helper
   static validateTokenId(tokenId) {
@@ -31,18 +30,8 @@ class HederaService {
       throw new Error('Environment variables HEDERA_ACCOUNT_ID and HEDERA_PRIVATE_KEY must be set');
     }
 
-    // Configure client based on network 
-    const network = process.env.HEDERA_NETWORK || 'testnet';
-    
-    if (network === 'testnet') {
-      this.client = Client.forTestnet();
-    } else if (network === 'mainnet') {
-      this.client = Client.forMainnet();
-    } else {
-      throw new Error('HEDERA_NETWORK must be either "testnet" or "mainnet"');
-    }
+    this.client = Client.forTestnet();
 
-    // Set operator account ID and private key
     this.client.setOperator(
       process.env.HEDERA_ACCOUNT_ID,
       process.env.HEDERA_PRIVATE_KEY
@@ -52,20 +41,16 @@ class HederaService {
     this.treasuryKey = PrivateKey.fromString(process.env.HEDERA_PRIVATE_KEY);
   }
 
-  // Create a new account on Hedera
   async createAccount() {
     try {
-      // Generate a new key pair
       const newAccountPrivateKey = PrivateKey.generateED25519();
       const newAccountPublicKey = newAccountPrivateKey.publicKey;
 
-      // Create a new account with 1 HBAR starting balance
       const newAccount = await new AccountCreateTransaction()
         .setKey(newAccountPublicKey)
-        .setInitialBalance(Hbar.fromTinybars(100000000)) // 1 HBAR
+        .setInitialBalance(Hbar.fromTinybars(100000000)) 
         .execute(this.client);
 
-      // Get the account ID
       const getReceipt = await newAccount.getReceipt(this.client);
       const newAccountId = getReceipt.accountId.toString();
 
@@ -112,21 +97,14 @@ class HederaService {
 
   async isNftAlreadyMinted(tokenId, metadata) {
     try {
-      // Instead of using deprecated TokenNftInfoQuery.setTokenId(), 
-      // we'll use alternative approaches to check for duplicate NFTs
-      
-      // Method 1: Check metadata via serial numbers
-      // This approach doesn't rely on the deprecated method
+     
       try {
-        // Get the token ID without the serial number
         const baseTokenId = tokenId.split(':')[0] || tokenId;
         
-        // Get token info to check supply
         const tokenInfo = await new TokenInfoQuery()
           .setTokenId(baseTokenId)
           .execute(this.client);
         
-        // If there are no NFTs yet, it can't be a duplicate
         if (tokenInfo.totalSupply.toNumber() === 0) {
           return false;
         }
@@ -137,12 +115,10 @@ class HederaService {
         return false;
       } catch (error) {
         console.error('Error in token existence check:', error);
-        // If we can't check, assume it's not minted to allow the attempt
         return false;
       }
     } catch (error) {
       console.error('Error checking NFT existence:', error);
-      // Fail open - if we can't check properly, we'll try to mint
       return false;
     }
   }
@@ -160,9 +136,7 @@ class HederaService {
     }
   }
 
-  // Helper method to prepare metadata
   _prepareMetadata(metadata) {
-    // Keep only essential fields and compress the metadata
     const essentialData = {
       id: metadata.badgeId,
       type: metadata.type || 'badge',
@@ -171,7 +145,6 @@ class HederaService {
     
     const metadataString = JSON.stringify(essentialData);
     if (Buffer.from(metadataString).length > 100) {
-      // If still too long, just store the minimal reference
       return JSON.stringify({ ref: metadata.badgeId });
     }
     return metadataString;
@@ -184,7 +157,6 @@ class HederaService {
     return `${prefix}_${timestamp}_${random}`;
   }
 
-  // Mint an NFT for a user
   async mintNFT(recipientAccountId, metadata = {}, providedTokenId = null) {
     try {
       // Validate and ensure metadata has required fields
@@ -203,22 +175,20 @@ class HederaService {
       }
 
       let tokenId = providedTokenId || HederaService.DEFAULT_TOKEN_ID;
-      
+
+      // If no tokenId is provided, create a new token collection
       if (!tokenId) {
-        throw new Error('No token collection ID provided and no default token collection configured');
+        const { tokenId: newTokenId } = await this.createTokenCollection('DefaultNFT', 'DFT');
+        tokenId = newTokenId;
       }
 
       // Validate token ID format
       HederaService.validateTokenId(tokenId);
 
-      // Validate that the token collection exists and is valid
-      try {
-        const tokenInfo = await this.getTokenInfo(tokenId);
-        if (!tokenInfo.isValid) {
-          throw new Error('Invalid token collection');
-        }
-      } catch (error) {
-        throw new Error(`Token collection ${tokenId} is not valid or accessible: ${error.message}`);
+      // Check if the NFT is already minted
+      const alreadyMinted = await this.isNftAlreadyMinted(tokenId, metadata);
+      if (alreadyMinted) {
+        throw new Error(`NFT with metadata ${JSON.stringify(metadata)} is already minted.`);
       }
 
       // Prepare metadata within size limits
@@ -235,19 +205,20 @@ class HederaService {
       const mintTxSubmit = await mintTx.execute(this.client);
       const mintRx = await mintTxSubmit.getReceipt(this.client);
 
-      // Get the serial number of the NFT
-      const nftSerialNumber = mintRx.serials[0].toNumber();
-      
+      // Validate the transaction
       const transactionId = mintTxSubmit.transactionId.toString();
-
-      if (!transactionId) {
-        throw new Error('Failed to generate transaction ID');
+      const isValidTransaction = await this.validateTransaction(transactionId);
+      if (!isValidTransaction) {
+        throw new Error('Minting transaction validation failed.');
       }
 
+      // Get the serial number of the NFT
+      const nftSerialNumber = mintRx.serials[0].toNumber();
+
       console.log(`Minted NFT ${tokenId} with serial: ${nftSerialNumber}`);
-      
-      return { 
-        tokenId: `${tokenId}:${nftSerialNumber}`, 
+
+      return {
+        tokenId: `${tokenId}:${nftSerialNumber}`,
         serialNumber: nftSerialNumber,
         transactionId: transactionId
       };

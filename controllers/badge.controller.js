@@ -15,10 +15,9 @@ exports.getUserBadges = async (req, res) => {
       });
     }
 
-    // Ensure `courseId` is populated correctly
     const badges = await Badge.find({ userId: user._id }).populate({
       path: 'courseId',
-      model: 'Course' // Explicitly specify the model to populate
+      model: 'Course' 
     });
 
     return res.status(200).json({ success: true, badges });
@@ -36,7 +35,6 @@ exports.mintBadge = async (req, res) => {
   try {
     const { userEmail, courseId } = req.body;
 
-    // Verify user and course existence
     const [user, course] = await Promise.all([
       User.findOne({ email: userEmail }),
       Course.findById(courseId)
@@ -50,7 +48,6 @@ exports.mintBadge = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Course not found' });
     }
 
-    // Check if user has already completed this course
     if (!user.completedCourses.includes(courseId)) {
       return res.status(400).json({
         success: false,
@@ -58,7 +55,6 @@ exports.mintBadge = async (req, res) => {
       });
     }
 
-    // Check for existing badge for this user and course
     const existingBadge = await Badge.findOne({
       userId: user._id,
       courseId: courseId
@@ -72,7 +68,6 @@ exports.mintBadge = async (req, res) => {
       });
     }
 
-    // Generate optimized badge metadata
     const metadata = (() => {
       const metadataV1 = {
         n: course.title.substring(0, 20),
@@ -97,7 +92,6 @@ exports.mintBadge = async (req, res) => {
       };
     })();
 
-    // Validate metadata size
     if (Buffer.from(JSON.stringify(metadata)).length > 100) {
       return res.status(400).json({
         success: false,
@@ -106,7 +100,6 @@ exports.mintBadge = async (req, res) => {
       });
     }
 
-    // Mint NFT using Hedera Service - handle potential Hedera errors
     let mintResult;
     try {
       mintResult = await HederaService.mintNFT(user.hederaAccountId, metadata);

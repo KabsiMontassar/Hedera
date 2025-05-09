@@ -1,6 +1,5 @@
 const Course = require('../models/course.model');
 const User = require('../models/user.model');
-const SmartContractService = require('../services/smartContract.service');
 
 exports.getAllCourses = async (req, res) => {
   try {
