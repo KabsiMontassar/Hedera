@@ -98,6 +98,96 @@ GET    /api/badges/:tokenId     # Get badge details
 GET    /api/badges/verify/:id   # Verify badge authenticity
 ```
 
+## 🧪 Testing Guide
+
+1. **Environment Setup**
+   ```bash
+   # Install dependencies
+   npm install
+   
+   # Create .env file (already done)
+   # Start the server
+   npm run dev
+   ```
+
+2. **Test Endpoints Using Postman/cURL**
+
+   a. **Create New User**
+   ```bash
+   curl -X POST http://localhost:3000/api/users/register \
+   -H "Content-Type: application/json" \
+   -d '{"username": "testuser", "email": "test@example.com"}'
+   ```
+
+   b. **Create Course**
+   ```bash
+   curl -X POST http://localhost:3000/api/courses \
+   -H "Content-Type: application/json" \
+   -d '{
+     "title": "Test Course",
+     "description": "Test Description",
+     "difficulty": "Beginner",
+     "badgeMetadata": {
+       "name": "Test Badge",
+       "symbol": "TBG",
+       "description": "Test Badge Description",
+       "imageUrl": "https://example.com/badge.png"
+     }
+   }'
+   ```
+
+   c. **Complete Course & Mint Badge**
+   ```bash
+   # First, complete the course (replace courseId)
+   curl -X POST http://localhost:3000/api/courses/[courseId]/complete \
+   -H "Content-Type: application/json" \
+   -d '{"userEmail": "test@example.com"}'
+
+   # Then mint the badge
+   curl -X POST http://localhost:3000/api/badges/mint \
+   -H "Content-Type: application/json" \
+   -d '{
+     "userEmail": "test@example.com",
+     "courseId": "[courseId]"
+   }'
+   ```
+
+   d. **View User Badges**
+   ```bash
+   curl http://localhost:3000/api/badges/user/test@example.com
+   ```
+
+3. **Testing Health Records**
+   ```bash
+   # Submit health record
+   curl -X POST http://localhost:3000/api/health-records/submit \
+   -H "Content-Type: application/json" \
+   -d '{
+     "patientId": "123",
+     "content": "Test health record content",
+     "metadata": {
+       "provider": "Dr Test",
+       "facility": "Test Hospital"
+     }
+   }'
+   ```
+
+4. **Expected Test Flow**:
+   - Register a new user (creates Hedera account)
+   - Create a test course
+   - Complete the course
+   - Mint badge for completion
+   - View user's badges
+   - Submit test health record
+   - View health record metadata
+
+**Note**: Keep track of IDs returned in responses as you'll need them for subsequent requests.
+
+5. **Monitoring**:
+   - Watch server console for detailed logs
+   - Check MongoDB database for created records
+   - Use Hedera testnet explorer (https://hashscan.io/testnet) to verify transactions
+
 ## 🔒 Security Features
 
 - **Smart Contract Verification**
