@@ -28,7 +28,11 @@ const userSchema = new mongoose.Schema({
   nftWallet: {
     hederaAccountId: String,
     publicKey: String
-  }
+  },
+  healthRecords: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'HealthRecord'
+  }]
 }, { timestamps: true });
 
 // Add method to check if user has earned a specific badge

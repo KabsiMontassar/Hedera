@@ -8,6 +8,20 @@ class HealthRecordService {
     this.algorithm = 'aes-256-gcm';
   }
 
+  validateHealthRecord(data) {
+    if (!data || typeof data !== 'object') {
+      throw new Error('Invalid health record data');
+    }
+
+    const requiredFields = ['patientId', 'content'];
+    for (const field of requiredFields) {
+      if (!data[field]) {
+        throw new Error(`Missing required field: ${field}`);
+      }
+    }
+    return true;
+  }
+
   async splitAndProcessData(data) {
     // Public data contains only basic metadata for MongoDB
     const publicData = {
@@ -20,18 +34,15 @@ class HealthRecordService {
       }
     };
 
-    // Store complete original data in IPFS
+    // Encrypt sensitive data
+    const encryptionKey = crypto.randomBytes(32);
     const fullData = {
-      ...data,                          // Include all original fields
-      timestamp: Date.now(),            // Add timestamp
-      version: '1.0',                   // Add version
-      originalSubmission: true          // Mark as original data
+      ...data,
+      timestamp: Date.now(),
+      version: '1.0'
     };
 
-    // Generate encryption key for future reference
-    const encryptionKey = await EncryptionService.generateEncryptionKey();
-    
-    // Store complete data in IPFS (unencrypted for visibility)
+    // Store complete data in IPFS
     const ipfsHash = await IPFSService.uploadContent(fullData);
 
     return {
@@ -41,98 +52,21 @@ class HealthRecordService {
     };
   }
 
-  validateHealthRecord(data) {
-    const requiredFields = ['patientId', 'content'];
-    for (const field of requiredFields) {
-      if (!data[field]) {
-        throw new Error(`Missing required field: ${field}`);
-      }
-    }
-
-    return true;
-  }
-
-  sanitizeInput(data) {
-    return {
-      ...data,
-      content: this._sanitizeText(data.content),
-      patientId: this._sanitizeText(data.patientId),
-    };
-  }
-
   generateDocumentId() {
     return `hr_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
-  }
-
-  prepareMetadata(data) {
-    return {
-      documentId: this.generateDocumentId(),
-      timestamp: Date.now(),
-      patientIdHash: this._hashPatientId(data.patientId),
-      version: '1.0'
-    };
-  }
-
-  async processRecord(data) {
-    // Split data into public and private parts
-    const { publicData, privateData } = this.splitData(data);
-    
-    // Generate encryption key
-    const encryptionKey = await EncryptionService.generateEncryptionKey();
-    
-    // Encrypt private data
-    const encryptedPackage = await EncryptionService.encrypt(privateData, encryptionKey);
-    
-    // Upload encrypted data to IPFS
-    const ipfsHash = await IPFSService.uploadContent(encryptedPackage);
-    
-    // Store reference on Hedera
-    const hederaFileId = await HederaService.storeFileReference(ipfsHash);
-
-    return {
-      publicData,
-      encryptedData: encryptedPackage,
-      encryptionKey: encryptionKey.toString('hex'),
-      ipfsHash,
-      hederaFileId
-    };
-  }
-
-  // Modify splitData to handle dynamic fields
-  splitData(data) {
-    // Basic public metadata
-    const publicData = {
-      metadata: {
-        provider: data.metadata?.provider || 'Unknown Provider',
-        facility: data.metadata?.facility || 'Unknown Facility',
-        date: new Date().toISOString().split('T')[0],
-        timestamp: Date.now(),
-        version: '1.0',
-        type: 'health_record'
-      }
-    };
-
-    // Store complete original data structure
-    const privateData = {
-      originalData: data,               // Store complete original data
-      timestamp: Date.now(),
-      version: '1.0'
-    };
-
-    return { publicData, privateData };
-  }
-
-  _sanitizeText(text) {
-    return text
-      .trim()
-      .replace(/[<>]/g, '') // Remove potential HTML tags
-      .replace(/[;{}]/g, ''); // Remove potential code injection characters
   }
 
   _hashPatientId(patientId) {
     return crypto
       .createHash('sha256')
       .update(patientId)
+      .digest('hex');
+  }
+
+  generatePatientIdHash(email) {
+    return crypto
+      .createHash('sha256')
+      .update(email.toLowerCase())
       .digest('hex');
   }
 }

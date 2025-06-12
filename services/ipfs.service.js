@@ -12,9 +12,9 @@ class IPFSService {
 
   async uploadContent(content) {
     try {
-      // Convert content to JSON string if it's an object
-      const contentStr = typeof content === 'object' ? 
-        JSON.stringify(content) : content.toString();
+      // Don't stringify if content is already a string
+      const contentStr = typeof content === 'string' ? 
+        content : JSON.stringify(content);
 
       const data = new FormData();
       data.append('file', Buffer.from(contentStr), {

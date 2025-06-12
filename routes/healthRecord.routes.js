@@ -63,23 +63,26 @@ router.get('/:id', HealthRecordController.getRecordById);
  * }
  */
 
-// Get private content
-router.get('/:id/private', HealthRecordController.getPrivateContent);
+
+
+// Add new route to get records by patient ID
+router.get('/patient/:patientId', HealthRecordController.getRecordsByPatientId);
 /**
- * Get private health record content API
- * GET http://localhost:3000/api/health-records/:id/private
+ * Get health records by patient ID API
+ * GET http://localhost:3000/api/health-records/patient/:patientId
  * 
  * Parameters:
- * - id: MongoDB _id of the health record
+ * - patientId: Original patient ID
  * 
  * Success response (200):
  * {
  *   "success": true,
- *   "privateContent": {
- *     "patientId": "...",
- *     "content": "...",
- *     "fullMetadata": {...}
- *   }
+ *   "records": [{
+ *     "documentId": "...",
+ *     "patientIdHash": "...",
+ *     "metadata": {...},
+ *     "status": "..."
+ *   }]
  * }
  */
 
