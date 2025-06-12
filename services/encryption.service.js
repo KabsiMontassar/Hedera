@@ -38,7 +38,6 @@ class EncryptionService {
         key,
         Buffer.from(encryptedPackage.iv, 'hex')
       );
-
       decipher.setAuthTag(Buffer.from(encryptedPackage.authTag, 'hex'));
       
       let decryptedData = decipher.update(encryptedPackage.encryptedData, 'hex', 'utf8');
@@ -49,24 +48,6 @@ class EncryptionService {
       console.error('Decryption error:', error);
       throw new Error('Failed to decrypt data');
     }
-  }
-
-  splitData(data) {
-    const publicData = {
-      metadata: {
-        timestamp: data.timestamp || Date.now(),
-        version: data.version || '1.0',
-        type: data.type || 'health_record'
-      }
-    };
-
-    const privateData = {
-      content: data.content,
-      patientInfo: data.patientInfo,
-      sensitiveData: data.sensitiveData
-    };
-
-    return { publicData, privateData };
   }
 }
 
