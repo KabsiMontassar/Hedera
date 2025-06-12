@@ -18,7 +18,14 @@ const healthRecordSchema = new mongoose.Schema({
   },
   // IPFS storage reference
   storage: {
-    ipfsHash: String,                 // IPFS location of data
+   // ipfsHash: String,                 // IPFS location of data
+     hedera: {
+    transactionId: String,
+    consensusTimestamp: String,
+    topicSequenceNumber: String,
+    runningHash: String,
+    status: String
+  },              // Hedera transaction ID
     encryptionKeyReference: String    // Reference to encryption key
   },
   status: {
@@ -39,8 +46,8 @@ healthRecordSchema.index({ 'metadata.timestamp': -1 });
 healthRecordSchema.index({ patientIdHash: 1, 'metadata.timestamp': -1 });
 
 // Add validation for IPFS hash format
-healthRecordSchema.path('storage.ipfsHash').validate(function(value) {
-  return /^Qm[1-9A-HJ-NP-Za-km-z]{44}$|^b[A-Za-z2-7]{58}$/.test(value);
-}, 'Invalid IPFS hash format');
+// healthRecordSchema.path('storage.ipfsHash').validate(function(value) {
+//   return /^Qm[1-9A-HJ-NP-Za-km-z]{44}$|^b[A-Za-z2-7]{58}$/.test(value);
+// }, 'Invalid IPFS hash format');
 
 module.exports = mongoose.model('HealthRecord', healthRecordSchema);

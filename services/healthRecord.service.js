@@ -23,33 +23,39 @@ class HealthRecordService {
   }
 
   async splitAndProcessData(data) {
-    // Public data contains only basic metadata for MongoDB
-    const publicData = {
-      metadata: {
-        provider: data.metadata?.provider || 'Unknown',
-        facility: data.metadata?.facility || 'Unknown',
-        date: new Date().toISOString(),
-        type: 'health_record',
-        version: '1.0'
+    try {
+      // Public data contains only basic metadata for MongoDB
+      const publicData = {
+        metadata: {
+          provider: data.metadata?.provider || 'Unknown',
+          facility: data.metadata?.facility || 'Unknown',
+          date: new Date().toISOString(),
+          type: 'health_record',
+          version: '1.0'
+        }
+      };
+
+      // Store complete data in IPFS
+      const ipfsHash = await IPFSService.uploadContent(data);
+
+      try {
+        // Try to store on Hedera, but don't fail if it errors
+        await HederaService.storeData({
+       //   ipfsHash,
+          patientIdHash: this._hashPatientId(data.patientId)
+        });
+      } catch (hederaError) {
+        console.warn('Hedera storage failed, continuing with IPFS only:', hederaError);
       }
-    };
 
-    // Encrypt sensitive data
-    const encryptionKey = crypto.randomBytes(32);
-    const fullData = {
-      ...data,
-      timestamp: Date.now(),
-      version: '1.0'
-    };
-
-    // Store complete data in IPFS
-    const ipfsHash = await IPFSService.uploadContent(fullData);
-
-    return {
-      publicData,
-      encryptionKey: encryptionKey.toString('hex'),
-      ipfsHash
-    };
+      return {
+        publicData,
+        ipfsHash
+      };
+    } catch (error) {
+      console.error('Error in splitAndProcessData:', error);
+      throw error;
+    }
   }
 
   generateDocumentId() {

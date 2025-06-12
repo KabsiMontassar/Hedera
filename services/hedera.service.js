@@ -11,11 +11,14 @@ const {
   TransactionId,
   TransactionReceiptQuery,
   FileCreateTransaction,
-  FileAppendTransaction
+  FileAppendTransaction,
+  TopicCreateTransaction,
+  TopicMessageSubmitTransaction
 } = require('@hashgraph/sdk');
 
 class HederaService {
-  static DEFAULT_TOKEN_ID = '0.0.5958264';  
+  static DEFAULT_TOKEN_ID = '0.0.5958264';
+  static DEFAULT_TOPIC_ID = '0.0.6151441';
 
   // Add token ID validation helper
   static validateTokenId(tokenId) {
@@ -41,6 +44,7 @@ class HederaService {
 
     this.treasuryId = process.env.HEDERA_ACCOUNT_ID;
     this.treasuryKey = PrivateKey.fromString(process.env.HEDERA_PRIVATE_KEY);
+    this.topicId = null;  // Will be set after creation
   }
 
   async createAccount() {
@@ -273,6 +277,55 @@ class HederaService {
       throw error;
     }
   }
+
+  async createTopic() {
+    try {
+      const transaction = await new TopicCreateTransaction()
+        .setAdminKey(this.treasuryKey)
+        .execute(this.client);
+
+      const receipt = await transaction.getReceipt(this.client);
+      this.topicId = receipt.topicId.toString();
+      console.log(`Created topic with ID: ${this.topicId}`);
+      return this.topicId;
+    } catch (error) {
+      console.error('Error creating topic:', error);
+      throw error;
+    }
+  }
+
+  async storeData({ ipfsHash, patientIdHash }) {
+  try {
+    // Create topic if it doesn't exist
+    if (!this.topicId) {
+      await this.createTopic();
+    }
+
+    const message = `IPFS_HASH:${ipfsHash}, PATIENT_ID_HASH:${patientIdHash}`;
+    const transaction = await new TopicMessageSubmitTransaction({
+      topicId: this.topicId,
+      message
+    }).execute(this.client);
+
+    // Get the receipt and record
+    const [receipt, record] = await Promise.all([
+      transaction.getReceipt(this.client),
+      transaction.getRecord(this.client)
+    ]);
+
+    return {
+      status: receipt.status.toString(),
+      transactionId: transaction.transactionId.toString(),
+      consensusTimestamp: record.consensusTimestamp,
+      topicSequenceNumber: receipt.topicSequenceNumber?.toString(),
+      topicRunningHash: receipt.topicRunningHash?.toString(),
+      nodeId: receipt.nodeId?.toString()
+    };
+  } catch (error) {
+    console.error('Error storing data on Hedera:', error);
+    throw error;
+  }
+}
 }
 
 module.exports = new HederaService();
