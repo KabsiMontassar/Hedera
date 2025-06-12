@@ -25,10 +25,10 @@ exports.submitRecord = async (req, res) => {
       recordData.content = JSON.stringify(recordData.content);
     }
 
-    // Add size validation
-    if (Buffer.from(recordData.content).length > 1048576) { // 1MB limit
-      throw new Error('Content size exceeds limit of 1MB');
-    }
+    // // Add size validation
+    // if (Buffer.from(recordData.content).length > 1048576) { // 1MB limit
+    //   throw new Error('Content size exceeds limit of 1MB');
+    // }
 
     // Validate input
     HealthRecordService.validateHealthRecord(recordData);
