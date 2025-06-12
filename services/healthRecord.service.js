@@ -9,36 +9,30 @@ class HealthRecordService {
   }
 
   async splitAndProcessData(data) {
-    // Public data that will be stored in MongoDB
+    // Public data contains only basic metadata for MongoDB
     const publicData = {
       metadata: {
         provider: data.metadata?.provider || 'Unknown',
         facility: data.metadata?.facility || 'Unknown',
-        date: data.metadata?.date || new Date().toISOString(),
+        date: new Date().toISOString(),
         type: 'health_record',
         version: '1.0'
       }
     };
 
-    // Private data that will be encrypted and stored in IPFS
-    const privateData = {
-      patientId: data.patientId,
-      content: data.content,
-      metadata: {  // Properly structure the metadata
-        provider: data.metadata?.provider,
-        facility: data.metadata?.facility,
-        date: data.metadata?.date,
-        additionalInfo: data.metadata?.additionalInfo || {},
-        timestamp: Date.now()
-      }
+    // Store complete original data in IPFS
+    const fullData = {
+      ...data,                          // Include all original fields
+      timestamp: Date.now(),            // Add timestamp
+      version: '1.0',                   // Add version
+      originalSubmission: true          // Mark as original data
     };
 
-    // Encrypt private data
+    // Generate encryption key for future reference
     const encryptionKey = await EncryptionService.generateEncryptionKey();
-    const encryptedPrivate = await EncryptionService.encrypt(privateData, encryptionKey);
     
-    // Store encrypted data in IPFS
-    const ipfsHash = await IPFSService.uploadContent(privateData); // Store unencrypted for IPFS visibility
+    // Store complete data in IPFS (unencrypted for visibility)
+    const ipfsHash = await IPFSService.uploadContent(fullData);
 
     return {
       publicData,
@@ -104,26 +98,26 @@ class HealthRecordService {
     };
   }
 
+  // Modify splitData to handle dynamic fields
   splitData(data) {
+    // Basic public metadata
     const publicData = {
       metadata: {
         provider: data.metadata?.provider || 'Unknown Provider',
         facility: data.metadata?.facility || 'Unknown Facility',
-        date: data.metadata?.date || new Date().toISOString().split('T')[0],
+        date: new Date().toISOString().split('T')[0],
         timestamp: Date.now(),
         version: '1.0',
         type: 'health_record'
       }
     };
 
+    // Store complete original data structure
     const privateData = {
-      content: typeof data.content === 'object' ? data.content : { notes: data.content },
-      patientId: data.patientId,
-      metadata: data.metadata // Include full metadata in private data for complete record
+      originalData: data,               // Store complete original data
+      timestamp: Date.now(),
+      version: '1.0'
     };
-
-    console.log('Split Data - Public:', publicData);
-    console.log('Split Data - Private:', privateData);
 
     return { publicData, privateData };
   }

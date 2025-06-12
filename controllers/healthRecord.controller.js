@@ -69,9 +69,7 @@ exports.getRecordById = async (req, res) => {
         metadata: {
           provider: record.metadata.provider,
           facility: record.metadata.facility,
-          date: record.metadata.date,
           timestamp: record.metadata.timestamp,
-          version: record.metadata.version
         },
         status: record.status
       }

@@ -1,37 +1,29 @@
 const mongoose = require('mongoose');
 
 const healthRecordSchema = new mongoose.Schema({
+  // Simple unique identifier
   documentId: {
     type: String,
     required: true,
     unique: true
   },
-  patientIdHash: {
-    type: String,
-    required: true,
-    index: true
-  },
+  // Basic metadata
   metadata: {
-    timestamp: Date,
-    version: String,
-    lastModified: Date
+    provider: String,
+    facility: String,
+    timestamp: {
+      type: Date,
+      default: Date.now
+    }
   },
+  // IPFS storage reference
   storage: {
-    encryptedData: String,
-    iv: String,
-    authTag: String,
-    encryptionKeyReference: String,
-    ipfsHash: String,
-    hederaFileId: String
-  },
-  status: {
-    type: String,
-    enum: ['pending', 'processed', 'encrypted', 'stored'],
-    default: 'pending'
+    ipfsHash: String,                 // IPFS location of data
+    encryptionKeyReference: String    // Reference to encryption key
   }
 }, { timestamps: true });
 
-// Add index for efficient queries
+// Keep timestamp index for sorting
 healthRecordSchema.index({ 'metadata.timestamp': -1 });
 
 module.exports = mongoose.model('HealthRecord', healthRecordSchema);
