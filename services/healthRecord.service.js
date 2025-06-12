@@ -14,7 +14,7 @@ class HealthRecordService {
       metadata: {
         provider: data.metadata?.provider || 'Unknown',
         facility: data.metadata?.facility || 'Unknown',
-        date: new Date().toISOString(),
+        date: data.metadata?.date || new Date().toISOString(),
         type: 'health_record',
         version: '1.0'
       }
@@ -24,7 +24,13 @@ class HealthRecordService {
     const privateData = {
       patientId: data.patientId,
       content: data.content,
-      fullMetadata: data.metadata || {}
+      metadata: {  // Properly structure the metadata
+        provider: data.metadata?.provider,
+        facility: data.metadata?.facility,
+        date: data.metadata?.date,
+        additionalInfo: data.metadata?.additionalInfo || {},
+        timestamp: Date.now()
+      }
     };
 
     // Encrypt private data
@@ -32,7 +38,7 @@ class HealthRecordService {
     const encryptedPrivate = await EncryptionService.encrypt(privateData, encryptionKey);
     
     // Store encrypted data in IPFS
-    const ipfsHash = await IPFSService.uploadContent(encryptedPrivate);
+    const ipfsHash = await IPFSService.uploadContent(privateData); // Store unencrypted for IPFS visibility
 
     return {
       publicData,

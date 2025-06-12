@@ -61,14 +61,19 @@ exports.getRecordById = async (req, res) => {
       });
     }
 
-    // Return only public data
+    // Return public data with metadata
     return res.status(200).json({
       success: true,
       record: {
         documentId: record.documentId,
-        metadata: record.metadata,
-        status: record.status,
-        createdAt: record.createdAt
+        metadata: {
+          provider: record.metadata.provider,
+          facility: record.metadata.facility,
+          date: record.metadata.date,
+          timestamp: record.metadata.timestamp,
+          version: record.metadata.version
+        },
+        status: record.status
       }
     });
   } catch (error) {
