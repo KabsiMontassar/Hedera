@@ -1,10 +1,11 @@
 const crypto = require('crypto');
 const HederaService = require('./hedera.service');
 const IPFSService = require('./ipfs.service');
+const EncryptionService = require('./encryption.service');
 
 class HealthRecordService {
   constructor() {
-    this.algorithm = 'aes-256-gcm';
+    // Remove old encryption-related properties
   }
 
   validateHealthRecord(data) {
@@ -21,6 +22,15 @@ class HealthRecordService {
     return true;
   }
 
+  // Replace old encryption methods with new ones
+  encryptData(data) {
+    return EncryptionService.encrypt(data);
+  }
+
+  decryptData(encryptedData, iv, authTag) {
+    return EncryptionService.decrypt(encryptedData, iv, authTag);
+  }
+
   async splitAndProcessData(data) {
     try {
       const publicData = {
@@ -33,7 +43,15 @@ class HealthRecordService {
         }
       };
 
-      const { ipfsHash } = await IPFSService.uploadContent(data);
+      const { encryptedData, iv, authTag } = this.encryptData(data);
+      const encryptedContent = {
+        content: encryptedData,
+        iv,
+        authTag,
+        version: '2' // Add version to track encryption method
+      };
+
+      const { ipfsHash } = await IPFSService.uploadContent(encryptedContent);
 
       try {
         await HederaService.storeData({

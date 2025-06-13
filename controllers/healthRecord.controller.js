@@ -182,9 +182,6 @@ exports.getRecordContent = async (req, res) => {
             throw new Error('Failed to decode record content');
         }
 
-
-
-  
         const ipfsHash = decodedContent.ipfs;
         const ipfsUrl = `https://blue-acceptable-meerkat-905.mypinata.cloud/ipfs/${ipfsHash}`;
         const response = await fetch(ipfsUrl);
@@ -192,15 +189,17 @@ exports.getRecordContent = async (req, res) => {
             console.error('Failed to fetch from IPFS:', response.statusText);
             throw new Error('Failed to fetch content from IPFS');
         }
-        const ipfsContent = await response.json();
+        const encryptedContent = await response.json();
 
-
-
+        const decryptedContent = HealthRecordService.decryptData(
+            encryptedContent.content,
+            encryptedContent.iv,
+            encryptedContent.authTag
+        );
 
         return res.status(200).json({
             success: true,
-            // content: decodedContent,
-            privateData: ipfsContent.content,
+            privateData: decryptedContent,
             PublicData: record.metadata
         });
 
