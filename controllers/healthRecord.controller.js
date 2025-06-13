@@ -1,8 +1,6 @@
 const HealthRecord = require('../models/healthRecord.model');
 const User = require('../models/user.model');
 const HealthRecordService = require('../services/healthRecord.service');
-const EncryptionService = require('../services/encryption.service');
-const IPFSService = require('../services/ipfs.service');
 const HederaService = require('../services/hedera.service');  // Add this line
 
 exports.submitRecord = async (req, res) => {
@@ -35,33 +33,20 @@ exports.submitRecord = async (req, res) => {
         // 6. Log to Hedera
         const hederaResponse = await HederaService.storeData({ ipfsHash, patientIdHash });
 
-        const transactionDetails = {
-            transactionId: hederaResponse?.transactionId || null,
-            consensusTimestamp: hederaResponse?.consensusTimestamp?.toString() || null,
-            topicSequenceNumber: hederaResponse?.topicSequenceNumber?.toString() || null,
-            runningHash: hederaResponse?.topicRunningHash || null,
-            status: hederaResponse?.status || null
-        };
-        // 7. Save health record in MongoDB
+    
+        // 7. Save health record in MongoDB with complete storage info
         const healthRecord = new HealthRecord({
             documentId: HealthRecordService.generateDocumentId(),
             patientIdHash: patientIdHash,
             metadata: {
                 ...publicData.metadata,
-                timestamp: Date.now(),
-                version: '1.0',
                 lastModified: new Date(),
                 patientEmail: patient.email
             },
             storage: {
-
                 ipfsHash,
                 hedera: {
-                    transactionId: transactionDetails.transactionId,
-                    consensusTimestamp: transactionDetails.consensusTimestamp,
-                    topicSequenceNumber: transactionDetails.topicSequenceNumber,
-                    runningHash: transactionDetails.runningHash,
-                    status: transactionDetails.status
+                    topicId:hederaResponse.topicId  // Store the topic ID instead of transaction details
                 }
             },
             status: 'stored'
@@ -169,34 +154,56 @@ exports.getRecordsByPatientId = async (req, res) => {
 exports.getRecordContent = async (req, res) => {
     try {
         const { id } = req.params;
+        console.log('Fetching record content for ID:', id);
 
-        // Validate ID format
-        if (!id.match(/^[0-9a-fA-F]{24}$/)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid record ID format'
-            });
-        }
-
-        // Find record in MongoDB
         const record = await HealthRecord.findById(id);
         if (!record) {
+            console.log('Record not found in MongoDB:', id);
             return res.status(404).json({
                 success: false,
                 message: 'Health record not found'
             });
         }
 
-        // Get encrypted content from IPFS and decrypt it
-        const decryptedContent = await IPFSService.getEncryptedContent(
-            record.storage.ipfsHash,
-            record.storage.encryptionKey
-        );
+        const messages = await HederaService.getMessageByTopicId(record.storage.hedera.topicId);
+        
+        const recordMessage = messages[0].message;
+        console.log('Record message:', recordMessage);
+        if (!recordMessage) {
+            throw new Error('Message not found in topic');
+        }
+
+        let decodedContent;
+        try {
+            const buffer = Buffer.from(recordMessage, 'base64');
+            decodedContent = JSON.parse(buffer.toString('utf8'));
+        } catch (decodeError) {
+            console.error('Error decoding content:', decodeError);
+            throw new Error('Failed to decode record content');
+        }
+
+
+
+  
+        const ipfsHash = decodedContent.ipfs;
+        const ipfsUrl = `https://blue-acceptable-meerkat-905.mypinata.cloud/ipfs/${ipfsHash}`;
+        const response = await fetch(ipfsUrl);
+        if (!response.ok) {
+            console.error('Failed to fetch from IPFS:', response.statusText);
+            throw new Error('Failed to fetch content from IPFS');
+        }
+        const ipfsContent = await response.json();
+
+
+
 
         return res.status(200).json({
             success: true,
-            content: decryptedContent
+            // content: decodedContent,
+            privateData: ipfsContent.content,
+            PublicData: record.metadata
         });
+
     } catch (error) {
         console.error('Error fetching record content:', error);
         return res.status(500).json({

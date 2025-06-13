@@ -1,6 +1,5 @@
 const crypto = require('crypto');
 const HederaService = require('./hedera.service');
-const EncryptionService = require('./encryption.service');
 const IPFSService = require('./ipfs.service');
 
 class HealthRecordService {
@@ -34,8 +33,7 @@ class HealthRecordService {
         }
       };
 
-      // Upload encrypted content to IPFS
-      const { ipfsHash, encryptionKey } = await IPFSService.uploadContent(data);
+      const { ipfsHash } = await IPFSService.uploadContent(data);
 
       try {
         await HederaService.storeData({
@@ -49,7 +47,6 @@ class HealthRecordService {
       return {
         publicData,
         ipfsHash,
-        encryptionKey
       };
     } catch (error) {
       console.error('Error in splitAndProcessData:', error);

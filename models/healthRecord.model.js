@@ -18,15 +18,10 @@ const healthRecordSchema = new mongoose.Schema({
   },
   // IPFS storage reference
   storage: {
-   // ipfsHash: String,                 // IPFS location of data
-     hedera: {
-    transactionId: String,
-    consensusTimestamp: String,
-    topicSequenceNumber: String,
-    runningHash: String,
-    status: String
-  },              // Hedera transaction ID
-    encryptionKeyReference: String    // Reference to encryption key
+  //  ipfsHash: String,                 // IPFS location of data
+    hedera: {
+      topicId: String
+    },              // Hedera transaction ID
   },
   status: {
     type: String,

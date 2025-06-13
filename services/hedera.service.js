@@ -13,8 +13,11 @@ const {
   FileCreateTransaction,
   FileAppendTransaction,
   TopicCreateTransaction,
-  TopicMessageSubmitTransaction
+  TopicMessageSubmitTransaction,
+  TransactionRecordQuery,
+  TopicMessageQuery
 } = require('@hashgraph/sdk');
+const axios = require('axios');
 
 class HederaService {
   static DEFAULT_TOKEN_ID = '0.0.5958264';
@@ -295,37 +298,66 @@ class HederaService {
   }
 
   async storeData({ ipfsHash, patientIdHash }) {
-  try {
-    // Create topic if it doesn't exist
-    if (!this.topicId) {
-      await this.createTopic();
+    try {
+        // Create topic if it doesn't exist
+        if (!this.topicId) {
+         await this.createTopic();
+        }
+
+        // Prepare message with both IPFS hash and patient hash
+        const message = JSON.stringify({
+            ipfs: ipfsHash,
+            patient: patientIdHash,
+            
+            timestamp: Date.now()
+        });
+
+        const transaction = await new TopicMessageSubmitTransaction({
+            topicId: this.topicId,
+            message
+        }).execute(this.client);
+
+        // Get the receipt and record
+        const receipt = await transaction.getReceipt(this.client);
+        const record = await transaction.getRecord(this.client);
+
+        return {
+            topicId: this.topicId,
+            status: receipt.status.toString(),
+            transactionId: transaction.transactionId.toString(),
+            consensusTimestamp: record.consensusTimestamp,
+            topicSequenceNumber: receipt.topicSequenceNumber?.toString(),
+            topicRunningHash: receipt.topicRunningHash?.toString(),
+            nodeId: receipt.nodeId?.toString()
+        };
+    } catch (error) {
+        console.error('Error storing data on Hedera:', error);
+        throw error;
     }
-
-    const message = `${ipfsHash}`;
-    const transaction = await new TopicMessageSubmitTransaction({
-      topicId: this.topicId,
-      message
-    }).execute(this.client);
-
-    // Get the receipt and record
-    const [receipt, record] = await Promise.all([
-      transaction.getReceipt(this.client),
-      transaction.getRecord(this.client)
-    ]);
-
-    return {
-      status: receipt.status.toString(),
-      transactionId: transaction.transactionId.toString(),
-      consensusTimestamp: record.consensusTimestamp,
-      topicSequenceNumber: receipt.topicSequenceNumber?.toString(),
-      topicRunningHash: receipt.topicRunningHash?.toString(),
-      nodeId: receipt.nodeId?.toString()
-    };
-  } catch (error) {
-    console.error('Error storing data on Hedera:', error);
-    throw error;
-  }
 }
+
+async getMessageByTopicId(topicId) {
+    try {
+
+      // Get messages from mirror node API
+      const mirrorNodeUrl = `https://testnet.mirrornode.hedera.com/api/v1/topics/${topicId}/messages`;
+      const response = await axios.get(mirrorNodeUrl);
+      
+      if (!response.data || !response.data.messages) {
+        throw new Error('No messages found for topic');
+      }
+
+      // Return the messages array
+      console.log(`Retrieved ${response.data.messages.length} messages from topic ${topicId}`);
+      return response.data.messages;
+
+
+
+    } catch (error) {
+      console.error('Error getting topic messages:', error);
+      throw new Error(`Failed to get topic messages: ${error.message}`);
+    }
+  }
 }
 
 module.exports = new HederaService();

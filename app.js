@@ -14,7 +14,7 @@ app.use(cors());
 
 // Routes
 const healthRecordRoutes = require('./routes/healthRecord.routes');
-app.use('/api/health-records', healthRecordRoutes);
+app.use('/api/health-records', healthRecordRoutes); 
 
 // Error handling middleware
 app.use((err, req, res, next) => {
