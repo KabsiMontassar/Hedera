@@ -24,7 +24,6 @@ class HealthRecordService {
 
   async splitAndProcessData(data) {
     try {
-      // Public data contains only basic metadata for MongoDB
       const publicData = {
         metadata: {
           provider: data.metadata?.provider || 'Unknown',
@@ -35,13 +34,12 @@ class HealthRecordService {
         }
       };
 
-      // Store complete data in IPFS
-      const ipfsHash = await IPFSService.uploadContent(data);
+      // Upload encrypted content to IPFS
+      const { ipfsHash, encryptionKey } = await IPFSService.uploadContent(data);
 
       try {
-        // Try to store on Hedera, but don't fail if it errors
         await HederaService.storeData({
-       //   ipfsHash,
+          ipfsHash,
           patientIdHash: this._hashPatientId(data.patientId)
         });
       } catch (hederaError) {
@@ -50,7 +48,8 @@ class HealthRecordService {
 
       return {
         publicData,
-        ipfsHash
+        ipfsHash,
+        encryptionKey
       };
     } catch (error) {
       console.error('Error in splitAndProcessData:', error);

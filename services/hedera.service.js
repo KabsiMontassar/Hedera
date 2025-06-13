@@ -301,7 +301,7 @@ class HederaService {
       await this.createTopic();
     }
 
-    const message = `IPFS_HASH:${ipfsHash}, PATIENT_ID_HASH:${patientIdHash}`;
+    const message = `${ipfsHash}`;
     const transaction = await new TopicMessageSubmitTransaction({
       topicId: this.topicId,
       message

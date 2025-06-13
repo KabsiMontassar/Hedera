@@ -1,5 +1,6 @@
 const axios = require('axios');
 const FormData = require('form-data');
+const EncryptionService = require('./encryption.service');
 
 class IPFSService {
   constructor() {
@@ -12,13 +13,15 @@ class IPFSService {
 
   async uploadContent(content) {
     try {
-      // Don't stringify if content is already a string
-      const contentStr = typeof content === 'string' ? 
-        content : JSON.stringify(content);
-
+      // Generate encryption key
+      const encryptionKey = EncryptionService.generateEncryptionKey();
+      
+      // Encrypt the content
+      const encryptedPackage = await EncryptionService.encrypt(content, encryptionKey);
+      
       const data = new FormData();
-      data.append('file', Buffer.from(contentStr), {
-        filename: 'content.json',
+      data.append('file', Buffer.from(JSON.stringify(encryptedPackage)), {
+        filename: 'encrypted_content.json',
         contentType: 'application/json',
       });
 
@@ -33,17 +36,28 @@ class IPFSService {
         }
       );
 
-      return response.data.IpfsHash;
+      return {
+        ipfsHash: response.data.IpfsHash,
+        encryptionKey: encryptionKey.toString('hex')
+      };
     } catch (error) {
       console.error('IPFS upload error:', error);
       throw new Error('Failed to upload to IPFS: ' + error.message);
     }
   }
 
-  async getContent(cid) {
+  async getEncryptedContent(cid, encryptionKey) {
     try {
       const response = await axios.get(`https://gateway.pinata.cloud/ipfs/${cid}`);
-      return response.data;
+      const encryptedPackage = response.data;
+      
+      // Decrypt the content
+      const decryptedData = await EncryptionService.decrypt(
+        encryptedPackage,
+        Buffer.from(encryptionKey, 'hex')
+      );
+
+      return decryptedData;
     } catch (error) {
       console.error('IPFS retrieval error:', error);
       throw new Error('Failed to retrieve from IPFS: ' + error.message);

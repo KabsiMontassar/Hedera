@@ -165,3 +165,44 @@ exports.getRecordsByPatientId = async (req, res) => {
         });
     }
 };
+
+exports.getRecordContent = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Validate ID format
+        if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid record ID format'
+            });
+        }
+
+        // Find record in MongoDB
+        const record = await HealthRecord.findById(id);
+        if (!record) {
+            return res.status(404).json({
+                success: false,
+                message: 'Health record not found'
+            });
+        }
+
+        // Get encrypted content from IPFS and decrypt it
+        const decryptedContent = await IPFSService.getEncryptedContent(
+            record.storage.ipfsHash,
+            record.storage.encryptionKey
+        );
+
+        return res.status(200).json({
+            success: true,
+            content: decryptedContent
+        });
+    } catch (error) {
+        console.error('Error fetching record content:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to fetch record content',
+            error: error.message
+        });
+    }
+};

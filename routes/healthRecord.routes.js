@@ -63,8 +63,6 @@ router.get('/:id', HealthRecordController.getRecordById);
  * }
  */
 
-
-
 // Add new route to get records by patient ID
 router.get('/patient/:patientId', HealthRecordController.getRecordsByPatientId);
 /**
@@ -83,6 +81,24 @@ router.get('/patient/:patientId', HealthRecordController.getRecordsByPatientId);
  *     "metadata": {...},
  *     "status": "..."
  *   }]
+ * }
+ */
+
+// Get IPFS content
+router.get('/content/:id', HealthRecordController.getRecordContent);
+/**
+ * Get health record content from IPFS
+ * GET http://localhost:3000/api/health-records/content/:id
+ * 
+ * Parameters:
+ * - id: MongoDB _id of the health record
+ * 
+ * Success response (200):
+ * {
+ *   "success": true,
+ *   "content": {
+ *     // Decrypted record content
+ *   }
  * }
  */
 
