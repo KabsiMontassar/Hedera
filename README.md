@@ -18,10 +18,8 @@ A secure, decentralized healthcare records management system built on Hedera Has
 
 ### NFT Badge System
 
-- **Verifiable Credentials**: NFT-based certification for medical achievements
-- **Automated Minting**: Smart contract-driven badge issuance
+- **Verifiable Credentials**: NFT-based certification for achievements
 - **Token Standards**: Custom HTS (Hedera Token Service) implementation
-- **Metadata Management**: Optimized on-chain and off-chain storage
 - **Achievement Tracking**: Course completion and certification verification
 
 ## 🔐 Security Architecture
