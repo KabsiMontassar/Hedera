@@ -15,7 +15,6 @@ A secure, decentralized healthcare records management system built on Hedera Has
 - **Decentralized Storage**: IPFS integration for distributed content storage
 - **Blockchain Verification**: Hedera Consensus Service (HCS) for immutable audit trails
 - **HIPAA Compliance**: Secure data handling with patient consent management
-- **Access Control**: Role-based permissions with cryptographic verification
 
 ### NFT Badge System
 
