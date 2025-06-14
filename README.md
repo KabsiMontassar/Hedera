@@ -120,38 +120,3 @@ cp .env.example .env
 # Start server
 npm run dev
 ```
-
-## 🤝 Contributing
-
-1. Fork repository
-2. Create feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Open Pull Request
-
-## 📜 Compliance & Certifications
-
-- HIPAA compliant architecture
-- GDPR ready
-- SOC 2 Type II compliant infrastructure
-- HL7 FHIR compatible
-
-## 🔍 Future Roadmap
-
-- [ ] Integration with major EHR systems
-- [ ] Smart contract-based consent management
-- [ ] Multi-signature record access
-- [ ] AI-powered anomaly detection
-- [ ] Cross-border health data exchange protocol
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
-
-## 🙏 Acknowledgments
-
-- Hedera Hashgraph team
-- IPFS & Pinata teams
-- MongoDB Atlas team
-- Healthcare standards organizations
-- Open source community
