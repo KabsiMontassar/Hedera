@@ -259,27 +259,27 @@ class HederaService {
     }
   }
 
-  async storeFileReference(ipfsHash) {
-    try {
-      // Create a new file on Hedera containing the IPFS hash
-      const fileCreateTx = new FileCreateTransaction()
-        .setKeys([this.treasuryKey])
-        .setContents(`IPFS:${ipfsHash}`)
-        .setMaxTransactionFee(2);
+  // async storeFileReference(ipfsHash) {
+  //   try {
+  //     // Create a new file on Hedera containing the IPFS hash
+  //     const fileCreateTx = new FileCreateTransaction()
+  //       .setKeys([this.treasuryKey])
+  //       .setContents(`IPFS:${ipfsHash}`)
+  //       .setMaxTransactionFee(2);
 
-      const fileSubmit = await fileCreateTx
-        .execute(this.client);
+  //     const fileSubmit = await fileCreateTx
+  //       .execute(this.client);
 
-      const fileReceipt = await fileSubmit.getReceipt(this.client);
-      const fileId = fileReceipt.fileId;
+  //     const fileReceipt = await fileSubmit.getReceipt(this.client);
+  //     const fileId = fileReceipt.fileId;
 
-      console.log(`Created file with ID: ${fileId}`);
-      return fileId.toString();
-    } catch (error) {
-      console.error('Error storing file reference:', error);
-      throw error;
-    }
-  }
+  //     console.log(`Created file with ID: ${fileId}`);
+  //     return fileId.toString();
+  //   } catch (error) {
+  //     console.error('Error storing file reference:', error);
+  //     throw error;
+  //   }
+  // }
 
   async createTopic() {
     try {

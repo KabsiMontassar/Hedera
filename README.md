@@ -48,7 +48,6 @@ graph TD
 - **Blockchain**: Hedera Hashgraph
   - Consensus Service (HCS)
   - Token Service (HTS)
-  - File Service (HFS)
   
 - **Backend**:
   - Node.js & Express
@@ -58,7 +57,6 @@ graph TD
 - **Security**:
   - AES-256-GCM encryption
   - ED25519 key pairs
-  - JWT authentication
 
 ## 📖 API Documentation
 
