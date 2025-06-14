@@ -94,15 +94,6 @@ POST /api/badges/mint
 }
 ```
 
-## 🚀 Performance Metrics
-
-| Operation | Average Latency | Success Rate |
-|-----------|----------------|--------------|
-| Record Encryption | ~100ms | 99.99% |
-| IPFS Storage | ~2s | 99.95% |
-| HCS Consensus | ~3s | 100% |
-| Badge Minting | ~5s | 99.98% |
-
 ## 🔧 Installation & Setup
 
 ```bash
